@@ -104,6 +104,9 @@ static struct Gameplay
   uint8_t max_score;
   bool is_game_over;
   bool player_1_won;
+
+  bool is_paused;
+  bool pause_combo_was_pressed;
 } gameplay;
 
 
@@ -133,6 +136,11 @@ static void moveRobotZigzag(Robot * robot) __attribute__((section(".ram_text")))
 static void moveRobotTracking(Robot * robot, const Orb * orb, int8_t aim_error_max) __attribute__((section(".ram_text")));
 static void moveRobot(Robot * robot, const Orb * orb) __attribute__((section(".ram_text")));
 static void changePlayerPosIfButtonPressedAndManageRobot(Player * player, Robot * robot, const Orb * orb) __attribute__((section(".ram_text")));
+static bool renderPauseIfNeeded(
+    Orb *orb,
+    Player *player_1,
+    Player *player_2
+) __attribute__((section(".ram_text")));
 
 void pingpong(void)
 {
@@ -144,6 +152,10 @@ void pingpong(void)
   {
     gameplay.mode = PLAYER_VS_PLAYER;
     chooseMode();
+
+    gameplay.is_paused = false;
+    gameplay.pause_combo_was_pressed = false;
+
     SSD1306_ClearDisplay();
 
     if (gameplay.mode == PLAYER_VS_PLAYER)
@@ -167,6 +179,11 @@ void pingpong(void)
         SCR1_Timer_Delay(1500000);
         for (;;)
         {
+          if (renderPauseIfNeeded(&orb, &player_1, &player_2))
+          {
+              SCR1_Timer_Delay(30000);
+              continue;
+          }
           SSD1306_ClearDisplay();
           changeOrbPosition(&orb);
           if (changeOrbDirIfCollisions(&orb, &player_1, &player_2))
@@ -204,6 +221,11 @@ void pingpong(void)
         SCR1_Timer_Delay(1500000);
         for (;;)
         {
+          if (renderPauseIfNeeded(&orb, &player_1, &robot.coordinates))
+          {
+              SCR1_Timer_Delay(30000);
+              continue;
+          }
           SSD1306_ClearDisplay();
           changeOrbPosition(&orb);
           if (changeOrbDirIfCollisions(&orb, &player_1, &robot.coordinates))
@@ -519,6 +541,40 @@ void settingsMode(void)
       SCR1_Timer_Delay(200000);
     }
   }
+}
+
+static bool renderPauseIfNeeded(Orb *orb, Player *player_1, Player *player_2)
+{
+    bool combo_pressed =
+      HAL_GPIO_ReadPin(
+        BUTTON_DOWN_PLAYER_1_PORT,
+        1 << BUTTON_DOWN_PLAYER_1_PIN
+      ) == GPIO_PIN_HIGH &&
+      HAL_GPIO_ReadPin(
+        BUTTON_UP_PLAYER_1_PORT,
+        1 << BUTTON_UP_PLAYER_1_PIN
+      ) == GPIO_PIN_HIGH;
+    if (combo_pressed && !gameplay.pause_combo_was_pressed)
+    {
+      gameplay.is_paused = !gameplay.is_paused;
+    }
+    gameplay.pause_combo_was_pressed = combo_pressed;
+    if (!gameplay.is_paused)
+    {
+      return false;
+    }
+    SSD1306_ClearDisplay();
+    drawPlatform(player_1);
+    drawPlatform(player_2);
+    drawOrb(orb);
+    SSD1306_FillRect(41, 23, 46, 18, SSD1306_WHITE);
+    SSD1306_FillRect(42, 24, 44, 16, SSD1306_BLACK);
+    SSD1306_SetTextSize(1);
+    SSD1306_SetTextColor(SSD1306_WHITE);
+    SSD1306_SetCursor(46, 28);
+    SSD1306_WriteText("PAUSED");
+    SSD1306_Display();
+    return true;
 }
 
 void initGraphics(void)
