@@ -1,82 +1,106 @@
-# ping-pong-mik32
-## Brief Description
-An implementation of arcade Ping-Pong for ELBEAR ACE-UNO board based on the MIK32 Amur MCU.
+# Atari PONG на MIK32
 
-**Provided Features:**
-- Menu
-- PvP
-- PvE
-- Audio Support
-- Settings Section
+## Общая информация
 
-Built with the `mik32-hal` and `mik32-shared` submodules.
-## Hardware
-**Components required:**
-- ELBEAR ACE-UNO Board
-- SSD1306 OLED Display (SPI, 128x64)
-- 4x Buttons
-- Passive Buzzer
-- Pull-up Resistors
-	- 1x 220 Ω (Passive Buzzer)
-	- 4x 10 kΩ (Buttons)
-- Jumper Wires
-## Installation
-### Download Dev Container Extension
-1. Install VSCode
-2. Go to `Extensions`
-3. Find `Dev Containers` Extension
-4. Install via Description
-### Clone the repository
-```
-git clone git@github.com:Nekich06/ping-pong-mik32.git
-cd ping-pong-mik32
-```
-### Build Docker Image Using Dev Container
-1. Press `Ctrl` + `Shift` + `P`
-2. Choose `Dev Containers: Reopen in Container`
-3. Wait for image build ending
-Now you're in Dev Container.
-### Build firmware
+**Номер группы:** 5130904/40101
 
->**Note:** `mik32-hal` function `HAL_SPI_Exchange` should have `__attribute__((section(".ram_text")))`, which is set **manually** before building firmware
+**Участники:**
+- Петров Никита Алексеевич (Nekich06)
+- Алымов Александр Анатольевич (netw1te)
+- Ткач Данил Николаевич (Danil3352)
 
-```
-make
-```
-### Flash MIK32 Amur
-```
-make flash
-```
-## Wiring Diagram / Plan
-<img width="1968" height="1845" alt="ping-pong-wire-plan" src="https://github.com/user-attachments/assets/bbb96b51-9347-4a0d-b039-42144e9a3b3a" />
+**Репозиторий:** [https://github.com/netw1te/ping-pong-mik32](https://github.com/netw1te/ping-pong-mik32)
 
-### SSD1306 OLED Display (SPI, 128x64)
+## Тема проекта
 
-| **Display Pins** | **ACE-UNO** |
-| ---------------- | ----------- |
-| **VCC**          | **3.3V**    |
-| **GND**          | **GND**     |
-| **D0 (SCLK)**    | **D6**      |
-| **D1 (MOSI)**    | **D5**      |
-| **RES**          | **D0**      |
-| **DC**           | **D2**      |
-| **CS**           | **D4**      |
-### Buttons
-| **Purpose**       | **ACE-UNO** |
-| ----------------- | ----------- |
-| **PLAYER_1_DOWN** | **D12**     |
-| **PLAYER_1_UP**   | **D11**     |
-| **PLAYER_2_DOWN** | **D13**     |
-| **PLAYER_2_UP**   | **D18**     |
-### Passive Buzzer
-| **Polarity** | **ACE-UNO** |
-| ------------ | ----------- |
-| **+**        | **D10**     |
-| **-**        | **GND**     |
-## References / Useful Docs
-* [opisanie-elbear-ace_uno-rev.1.1-11.08.1-a3.pdf](https://github.com/user-attachments/files/28034439/opisanie-elbear-ace_uno-rev.1.1-11.08.1-a3.pdf)
-* [MIK32_datasheet_v2.2.2.pdf](https://github.com/user-attachments/files/28034442/MIK32_datasheet_v2.2.2.3.pdf)
-* [SSD1306.pdf](https://github.com/user-attachments/files/28034450/DOC001404223.pdf)
-* [adafruit/Adafruit_SSD1306: Arduino library for SSD1306 monochrome 128x64 and 128x32 OLEDs](https://github.com/adafruit/Adafruit_SSD1306?ysclid=mpda5swber322517148)
-* [adafruit/Adafruit-GFX-Library: Adafruit GFX graphics core Arduino library, this is the 'core' class that all our other graphics libraries derive from](https://github.com/adafruit/Adafruit-GFX-Library?ysclid=mpda5gyox4440863316)
+Реализация аркады Atari PONG на российском микроконтроллере MIK32.
+
+## Технологический стек
+
+| Элемент | Инструмент / Навык |
+|---|---|
+| Язык программирования | C |
+| Сборка и прошивка | Make / CMake / Linker Script |
+| Контейнеризация среды разработки | Docker |
+| Физическое воплощение | Основы схемотехники + набор электрических компонентов + плата с MIK32 + логический анализатор |
+
+## Определение проблемы
+
+Существует множество популярных семейств микроконтроллеров, под которые написано множество библиотек и драйверов: ATmega, STM, ESP и т.д. Однако портирование драйверов на отечественные аналоги (в нашем случае MIK32) может представлять определённые трудности. Поэтому хотелось бы иметь библиотеки, которые будут работать с ними «из коробки».
+
+## Выработка требований
+
+Начиная разрабатывать baremetal-проект на MIK32, пользователь хочет сфокусироваться на реализации основного функционала, абстрагируясь от побочных задач — в частности, от написания драйверов для периферии: I2C/SPI-дисплея, звукового драйвера, использования GPIO и тому подобного. Таким образом, он сможет обратиться к проекту «Реализация аркады Atari PONG на российском микроконтроллере MIK32» как к референсу, чтобы использовать написанные в нём драйверы и имплементации для работы с периферией в своих целях.
+
+Проект может служить демонстрацией того, что отечественные аналоги известных микроконтроллеров удовлетворяют тем же требованиям, что и микроконтроллеры зарубежных коллег: результатом по факту является та же интеграция популярных электронных компонентов с микроконтроллером, только в данном случае им является MIK32. Проект демонстрирует взаимодействие следующих составляющих:
+
+- **MIK32 на плате ELBEAR** — мозг системы + интерфейс для подключения периферии
+
+  <img width="412" height="316" alt="image" src="https://github.com/user-attachments/assets/12008e2d-ec39-44f3-a4d0-28d19d4b23fb" />
+
+- **SSD1306 OLED Display (SPI, 128x64)** — вывод графики на экран
+
+  <img width="316" height="316" alt="image" src="https://github.com/user-attachments/assets/156faf41-c0c6-40b8-aeae-ce32b5a6858c" />
+
+- **Пассивный зуммер** — реализация аудиосопровождения
+
+  <img width="269" height="269" alt="image" src="https://github.com/user-attachments/assets/6e136fc9-8e25-40a1-8b48-24ce8f323011" />
+
+- **Кнопки** — внешние воздействия на baremetal-приложение
+
+  <img width="311" height="234" alt="image" src="https://github.com/user-attachments/assets/1c5eb6f8-f4e7-45a3-ac8c-ab43ee8e7d9e" />
+
+## Архитектура и детальное проектирование
+
+Разработка архитектуры включает три иллюстрации:
+
+- **Ping-Pong MIK32 Implementation** — общая схема взаимодействия пользователя, электронных компонент, SW и интерфейсов
+- **Wiring Diagram** — схема, демонстрирующая сборку всего проекта на макетной плате (fritzing)
+- **Mapping Tables** — таблицы с соответствием портов платы периферии
+
+### Ping-Pong MIK32 Implementation
+
+<img width="2697" height="702" alt="ping-pong-mik32-impl" src="https://github.com/user-attachments/assets/18b93a93-ea70-456e-a7dd-7288afae6c97" />
+
+### Wiring Diagram
+
+<img width="975" height="914" alt="image" src="https://github.com/user-attachments/assets/116fb59e-fe34-4f9b-9655-3338f292e150" />
+
+### Mapping Tables
+
+#### SSD1306 OLED Display (SPI, 128x64)
+
+| Display Pins | ACE-UNO |
+|---|---|
+| VCC | 3.3V |
+| GND | GND |
+| D0 (SCLK) | D6 |
+| D1 (MOSI) | D5 |
+| RES | D0 |
+| DC | D2 |
+| CS | D4 |
+
+#### Buttons
+
+| Purpose | ACE-UNO |
+|---|---|
+| PLAYER_1_DOWN | D12 |
+| PLAYER_1_UP | D11 |
+| PLAYER_2_DOWN | D13 |
+| PLAYER_2_UP | D18 |
+
+#### Passive Buzzer
+
+| Polarity | ACE-UNO |
+|---|---|
+| + | D10 |
+| - | GND |
+
+## Тестирование
+
+Тестирование реализовано через фреймворк **Ceedling** и представлено файлом `test/test_ping_pong.c`.
+
+## Сборка
+
+Сборка реализована через **Make / CMake** в связке с **Docker**, что позволяет собирать и прошивать микроконтроллер в изолированном окружении.
  
