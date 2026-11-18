@@ -106,7 +106,7 @@ static struct Gameplay
   bool player_1_won;
 
   bool is_paused;
-  bool pause_combo_was_pressed;
+  bool pause_button_was_pressed;
 } gameplay;
 
 
@@ -154,7 +154,7 @@ void pingpong(void)
     chooseMode();
 
     gameplay.is_paused = false;
-    gameplay.pause_combo_was_pressed = false;
+    gameplay.pause_button_was_pressed = false;
 
     SSD1306_ClearDisplay();
 
@@ -545,20 +545,16 @@ void settingsMode(void)
 
 static bool renderPauseIfNeeded(Orb *orb, Player *player_1, Player *player_2)
 {
-    bool combo_pressed =
+    bool pause_pressed =
       HAL_GPIO_ReadPin(
-        BUTTON_DOWN_PLAYER_1_PORT,
-        1 << BUTTON_DOWN_PLAYER_1_PIN
-      ) == GPIO_PIN_HIGH &&
-      HAL_GPIO_ReadPin(
-        BUTTON_UP_PLAYER_1_PORT,
-        1 << BUTTON_UP_PLAYER_1_PIN
+        PAUSE_BUTTON_PORT,
+        1 << PAUSE_BUTTON_PIN
       ) == GPIO_PIN_HIGH;
-    if (combo_pressed && !gameplay.pause_combo_was_pressed)
+    if (pause_pressed && !gameplay.pause_button_was_pressed)
     {
       gameplay.is_paused = !gameplay.is_paused;
     }
-    gameplay.pause_combo_was_pressed = combo_pressed;
+    gameplay.pause_button_was_pressed = pause_pressed;
     if (!gameplay.is_paused)
     {
       return false;
